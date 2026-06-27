@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CT Radiation-Dose Audit Report</title>
+<style>{{ css }}</style>
+</head>
+<body>
+  <header class="report-header">
+    <div class="eyebrow">CT RADIATION-DOSE QUALITY IMPROVEMENT AUDIT</div>
+    <h1>dicom-dose-audit Report</h1>
+    <p class="subtitle">
+      {{ start_date }} to {{ end_date }} &nbsp;|&nbsp; {{ n }} studies &nbsp;|&nbsp;
+      {{ n_protocols }} protocols &nbsp;|&nbsp; {{ n_outliers }} statistical outliers
+    </p>
+  </header>
+
+  <section class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Studies</div>
+      <div class="kpi-value">{{ n }}</div>
+      <div class="kpi-desc">total audited</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Statistical outliers</div>
+      <div class="kpi-value">{{ n_outliers }}</div>
+      <div class="kpi-desc">flagged, not unsafe</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Missing CTDIvol</div>
+      <div class="kpi-value">{{ missing_ctdi }}</div>
+      <div class="kpi-desc">studies</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Missing DLP</div>
+      <div class="kpi-value">{{ missing_dlp }}</div>
+      <div class="kpi-desc">studies</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Protocol-Level Dose Summary</h2>
+    {{ summary_table }}
+  </section>
+
+  <section>
+    <h2>CTDIvol by Protocol</h2>
+    <img class="plot" src="{{ boxplot_ctdi_protocol }}" alt="CTDIvol by protocol boxplot">
+  </section>
+
+  <section>
+    <h2>DLP by Protocol</h2>
+    <img class="plot" src="{{ boxplot_dlp_protocol }}" alt="DLP by protocol boxplot">
+  </section>
+
+  <section>
+    <h2>CTDIvol by Scanner</h2>
+    <img class="plot" src="{{ boxplot_ctdi_scanner }}" alt="CTDIvol by scanner boxplot">
+  </section>
+
+  <section>
+    <h2>Monthly Dose Trends</h2>
+    <img class="plot" src="{{ trend_ctdi }}" alt="Monthly median CTDIvol trend">
+    <img class="plot" src="{{ trend_dlp }}" alt="Monthly median DLP trend">
+  </section>
+
+  <section>
+    <h2>Statistical Outliers</h2>
+    <p class="caveat">Flagged studies are statistical outliers within their protocol group.
+    This is <strong>not</strong> a clinical-safety determination.</p>
+    {{ outliers_table }}
+  </section>
+
+  <section>
+    <h2>Protocol-Version Comparison</h2>
+    {{ versions_table }}
+  </section>
+
+  <section>
+    <h2>Missing-Dose Analysis</h2>
+    {{ missing_table }}
+  </section>
+
+  <footer class="disclaimer">
+    {{ disclaimer }}
+  </footer>
+</body>
+</html>
