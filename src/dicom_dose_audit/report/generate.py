@@ -19,7 +19,8 @@ from importlib.resources import files
 from pathlib import Path
 
 import pandas as pd
-from jinja2 import Environment, Markup, select_autoescape
+from jinja2 import Environment, select_autoescape
+from markupsafe import Markup
 
 from ..analysis import DoseAuditResult, audit_summary_dict, summary_metrics_frame
 from ..analytics.comparisons import comparisons_dataframe

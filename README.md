@@ -62,6 +62,19 @@ dicom-dose-audit --help
 4. Generate an HTML report for internal physics, quality, or research review.
 5. Treat all findings as review prompts that require local clinical and physics governance.
 
+## Dashboard and Desktop Downloads
+
+Run the local dashboard with:
+
+```bash
+python -m pip install -e ".[app]"
+dicom-dose-audit serve
+```
+
+Tagged releases can provide native desktop artifacts for Windows, macOS, and Linux. These launch the dashboard locally in your browser and do not require API keys.
+
+See [docs/DESKTOP_RELEASES.md](docs/DESKTOP_RELEASES.md) for build and release details.
+
 ## Testing and Quality
 
 | Check | Command |
@@ -82,6 +95,8 @@ The GitHub Actions workflow runs linting and tests on Python 3.11 and 3.12.
 ## Documentation
 
 - [Requirements](docs/REQUIREMENTS.md)
+- [Desktop Releases](docs/DESKTOP_RELEASES.md)
+- [Roadmap](docs/ROADMAP.md)
 - [Research Notes](docs/RESEARCH.md)
 
 ## Contributing
