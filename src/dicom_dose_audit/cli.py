@@ -17,6 +17,7 @@ from .analysis import (
     run_dose_audit,
     write_audit_outputs,
 )
+from .data import write_synthetic_demo_bundle
 from .dicom import (
     ingest_dicom_dir,
     records_to_dataframe,
@@ -71,6 +72,40 @@ def demo(
         console.print(f"[yellow]PDF skipped; see:[/yellow] {artifacts.pdf_error}")
 
     _print_summary_table(result)
+
+
+@app.command("demo-bundle")
+def demo_bundle(
+    output: Annotated[
+        Path, typer.Option(help="Directory for the shareable synthetic bundle.")
+    ] = Path("outputs/synthetic_demo_bundle"),
+    n: Annotated[int, typer.Option(help="Number of synthetic studies.")] = 250,
+    seed: Annotated[int, typer.Option(help="Random seed for reproducible data.")] = 42,
+    start_date: Annotated[
+        str, typer.Option(help="First synthetic study date, in YYYY-MM-DD format.")
+    ] = "2025-10-01",
+    pdf: Annotated[bool, typer.Option("--pdf/--no-pdf", help="Also attempt PDF export.")] = True,
+    force: Annotated[
+        bool, typer.Option("--force", help="Overwrite an existing non-empty bundle directory.")
+    ] = False,
+) -> None:
+    """Generate a synthetic, shareable report bundle with no DICOM files or PHI."""
+    try:
+        artifacts = write_synthetic_demo_bundle(
+            output,
+            n=n,
+            seed=seed,
+            start_date=start_date,
+            include_pdf=pdf,
+            force=force,
+        )
+    except FileExistsError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    console.print(f"[green]Wrote synthetic demo bundle:[/green] {output}")
+    for name, path in artifacts.items():
+        console.print(f"  {name}: {path}")
 
 
 @app.command("ingest")

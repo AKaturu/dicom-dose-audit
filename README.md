@@ -18,6 +18,7 @@ Open-source CT radiation-dose audit tooling for quality-improvement and research
 - Outlier detection and protocol-version comparisons.
 - Monthly trend tables and static/interactive plotting helpers.
 - HTML report generation for reproducible internal review.
+- Synthetic demo bundle generation for screenshots, docs, and examples without DICOM privacy risk.
 - CLI-first design with reusable Python modules under `src/dicom_dose_audit`.
 
 ## Repository Layout
@@ -52,6 +53,12 @@ After installation, the CLI is available as:
 
 ```bash
 dicom-dose-audit --help
+```
+
+Generate a shareable synthetic report bundle with no DICOM files and no PHI:
+
+```bash
+dicom-dose-audit demo-bundle --output outputs/synthetic_demo_bundle --no-pdf
 ```
 
 ## Typical Workflow

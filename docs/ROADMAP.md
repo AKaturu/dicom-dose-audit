@@ -5,7 +5,7 @@ This roadmap tracks planned work after the initial public MVP. Items are grouped
 ## Near Term
 
 - Publish cross-platform desktop downloads for Windows, macOS, and Linux through GitHub Actions release artifacts.
-- Add a fully synthetic demo report bundle with screenshots that can be shared without DICOM privacy risk.
+- [Implemented] Add a fully synthetic demo report bundle with screenshots that can be shared without DICOM privacy risk.
 - Expand dashboard workflows for CSV upload, synthetic examples, report download, and outlier review.
 - Add regression fixtures for malformed DICOM headers, missing dose metadata, unsupported SOP classes, and empty study groups.
 
@@ -32,7 +32,7 @@ This roadmap tracks planned work after the initial public MVP. Items are grouped
 
 ## Release Hardening
 
-- Sign or checksum release artifacts when the project starts publishing tagged releases.
+- [Implemented] Sign or checksum release artifacts when the project starts publishing tagged releases.
 - Add packaged desktop smoke tests in CI.
 - Add accessibility and responsive-layout checks for the dashboard.
 - Publish versioned documentation pages once the command and CSV contracts stabilize.
