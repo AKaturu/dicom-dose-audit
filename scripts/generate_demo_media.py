@@ -132,7 +132,7 @@ def _draw_protocol_bars(draw: ImageDraw.ImageDraw, protocols: list[str]) -> None
         y += 34
 
 
-def _frame(summary: dict[str, Any], output: str, step: int) -> Image.Image:
+def _frame(summary: dict[str, Any], output: str) -> Image.Image:
     image = Image.new("RGB", (WIDTH, HEIGHT), "#0b1020")
     draw = ImageDraw.Draw(image)
     draw.rectangle((0, 0, WIDTH, 92), fill="#111827")
@@ -147,14 +147,11 @@ def _frame(summary: dict[str, Any], output: str, step: int) -> Image.Image:
     )
 
     _draw_terminal(draw)
-    if step >= 1:
-        _metric(draw, 730, 180, "Studies", str(summary["n_studies"]), "#38bdf8")
-        _metric(draw, 990, 180, "Protocols", str(summary["n_protocols"]), "#34d399")
-    if step >= 2:
-        _metric(draw, 730, 300, "Missing CTDI/DLP", str(summary["n_studies_missing_both"]), "#fbbf24")
-        _metric(draw, 990, 300, "Outliers flagged", str(summary["n_outliers"]), "#f87171")
-    if step >= 3:
-        _draw_protocol_bars(draw, list(summary["protocols"]))
+    _metric(draw, 730, 180, "Studies", str(summary["n_studies"]), "#38bdf8")
+    _metric(draw, 990, 180, "Protocols", str(summary["n_protocols"]), "#34d399")
+    _metric(draw, 730, 300, "Missing CTDI/DLP", str(summary["n_studies_missing_both"]), "#fbbf24")
+    _metric(draw, 990, 300, "Outliers flagged", str(summary["n_outliers"]), "#f87171")
+    _draw_protocol_bars(draw, list(summary["protocols"]))
     return image
 
 
@@ -168,7 +165,9 @@ def _write_media(frames: list[Image.Image]) -> None:
     mp4 = ASSETS / "demo.mp4"
     frames[-1].save(poster, optimize=True)
     imageio.mimsave(gif, frames, duration=1.2, loop=0)
-    with imageio.get_writer(mp4, fps=1, codec="libx264", quality=8, macro_block_size=None) as writer:
+    with imageio.get_writer(
+        mp4, fps=1, codec="libx264", quality=8, macro_block_size=None
+    ) as writer:
         for frame in frames:
             writer.append_data(np.asarray(frame))
 
@@ -180,7 +179,8 @@ def main() -> int:
 
     output = _run_demo(args.workspace)
     manifest = json.loads((args.workspace / "manifest.json").read_text(encoding="utf-8"))
-    frames = [_frame(manifest["summary"], output, step) for step in range(4)]
+    frame = _frame(manifest["summary"], output)
+    frames = [frame.copy() for _ in range(4)]
     _write_media(frames)
     print(f"Wrote {ASSETS / 'demo-poster.png'}")
     print(f"Wrote {ASSETS / 'demo.gif'}")
