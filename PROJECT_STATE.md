@@ -15,6 +15,7 @@ GitHub presentation polish, dashboard restoration, roadmap, and native desktop r
 - Added PyInstaller desktop packaging and a GitHub Actions workflow for Windows ZIP, macOS DMG, and Linux tar.gz artifacts.
 - Added native-release checksum sidecars for future desktop artifacts.
 - Added `dicom-dose-audit demo-bundle`, which writes a shareable synthetic-only bundle with a validated CSV, analysis tables, HTML/PDF report artifacts, manifest, README, and screenshot guide.
+- Added reproducible GitHub demo media generation through `scripts/generate_demo_media.py`, with committed synthetic-only poster, GIF, and MP4 assets under `docs/assets/`.
 
 ## Validation
 
@@ -26,6 +27,8 @@ python -m pytest
 python -m pip install -e ".[app,packaging]"
 python scripts/build_native.py --help
 dicom-dose-audit demo-bundle --output outputs/synthetic_demo_bundle --no-pdf
+python -m pip install -e ".[media]"
+python scripts/generate_demo_media.py
 ```
 
 GitHub Actions should run the same checks on each push and pull request to `main`.

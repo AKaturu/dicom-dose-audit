@@ -49,6 +49,11 @@ dependencies = [
 [project.optional-dependencies]
 app = ["streamlit>=1.36"]
 packaging = ["pyinstaller>=6.0"]
+media = [
+    "imageio>=2.34",
+    "imageio-ffmpeg>=0.5",
+    "Pillow>=10.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=4.1",
@@ -102,7 +107,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --basetemp=.pytest-tmp"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::FutureWarning",

@@ -8,6 +8,8 @@ Open-source CT radiation-dose audit tooling for quality-improvement and research
 
 `dicom-dose-audit` reads CTDIvol and DLP values from DICOM metadata or dose structured reports, groups studies by protocol, scanner, and patient-size category, detects missing dose metadata, flags statistical outliers, compares protocol versions, plots monthly trends, and generates quality-improvement reports.
 
+![Synthetic DICOM dose audit demo](docs/assets/demo.gif)
+
 > Research and quality-improvement software only. This project is not a medical device, does not diagnose disease, and does not determine regulatory compliance by itself.
 
 ## Highlights
@@ -61,6 +63,13 @@ Generate a shareable synthetic report bundle with no DICOM files and no PHI:
 dicom-dose-audit demo-bundle --output outputs/synthetic_demo_bundle --no-pdf
 ```
 
+Regenerate the GitHub demo GIF/MP4 from the same synthetic workflow:
+
+```bash
+python -m pip install -e ".[media]"
+python scripts/generate_demo_media.py
+```
+
 ## Typical Workflow
 
 1. Export a local, authorized set of CT DICOM objects or dose reports.
@@ -102,6 +111,7 @@ The GitHub Actions workflow runs linting and tests on Python 3.11 and 3.12.
 ## Documentation
 
 - [Requirements](docs/REQUIREMENTS.md)
+- [Demo Media](docs/demo-media.md)
 - [Desktop Releases](docs/DESKTOP_RELEASES.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Research Notes](docs/RESEARCH.md)
