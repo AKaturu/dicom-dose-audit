@@ -41,8 +41,7 @@ BLUE = "#1769aa"
 GREEN = "#1f7a4d"
 ORANGE = "#b54d12"
 
-# PDF font family set once in ``_write_pdf_fpdf2`` after font registration.
-_PDF_FONT = "Helvetica"
+
 
 
 @dataclass(frozen=True)
@@ -149,77 +148,75 @@ def _register_fonts(pdf: object) -> str:
     return "Helvetica"  # built-in latin-1 fallback
 
 
-def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path) -> None:
+def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path, font_family: str = "Helvetica") -> None:
     """Generate a styled PDF using fpdf2 as a cross-platform fallback."""
     from fpdf import FPDF
-
-    global _PDF_FONT
 
     summary = audit_summary_dict(result)
     pdf = FPDF(orientation="P", unit="mm", format="A4")
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.set_margins(15, 15, 15)
 
-    _PDF_FONT = _register_fonts(pdf)
+    font_family = _register_fonts(pdf)
 
     # --- Cover / Header ---
     pdf.add_page()
-    _pdf_header(pdf, summary)
-    _pdf_kpi_boxes(pdf, summary)
+    _pdf_header(pdf, summary, font_family)
+    _pdf_kpi_boxes(pdf, summary, font_family)
 
     # --- Protocol summary table ---
-    _pdf_section(pdf, "Protocol-Level Dose Summary")
-    _pdf_table(pdf, summary_metrics_frame(result))
+    _pdf_section(pdf, "Protocol-Level Dose Summary", font_family=font_family)
+    _pdf_table(pdf, summary_metrics_frame(result), font_family)
 
     # --- Plots ---
     pdf.add_page()
-    _pdf_section(pdf, "CTDIvol by Protocol")
+    _pdf_section(pdf, "CTDIvol by Protocol", font_family=font_family)
     _pdf_embed_plot(pdf, boxplot_by_protocol(result.dataframe, COL_CTDI_VOL))
-    _pdf_section(pdf, "DLP by Protocol")
+    _pdf_section(pdf, "DLP by Protocol", font_family=font_family)
     _pdf_embed_plot(pdf, boxplot_by_protocol(result.dataframe, COL_DLP))
 
     pdf.add_page()
-    _pdf_section(pdf, "CTDIvol by Scanner")
+    _pdf_section(pdf, "CTDIvol by Scanner", font_family=font_family)
     _pdf_embed_plot(pdf, boxplot_by_scanner(result.dataframe, COL_CTDI_VOL))
-    _pdf_section(pdf, "Monthly Dose Trends (CTDIvol)")
+    _pdf_section(pdf, "Monthly Dose Trends (CTDIvol)", font_family=font_family)
     trend_df = trends_dataframe(result.trends)
     _pdf_embed_plot(pdf, monthly_trend_plot(trend_df, COL_CTDI_VOL))
 
     # --- Outliers ---
     pdf.add_page()
-    _pdf_section(pdf, "Statistical Outliers")
-    _pdf_caveat(pdf)
+    _pdf_section(pdf, "Statistical Outliers", font_family=font_family)
+    _pdf_caveat(pdf, font_family)
     outliers_df = outliers_dataframe(result.outliers)
     if outliers_df.empty:
-        pdf.set_font(_PDF_FONT, "I", 10)
+        pdf.set_font(font_family, "I", 10)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(0, 6, "No statistical outliers flagged.", new_x="LMARGIN", new_y="NEXT")
     else:
-        _pdf_table(pdf, outliers_df)
+        _pdf_table(pdf, outliers_df, font_family)
 
     # --- Version comparison ---
-    _pdf_section(pdf, "Protocol-Version Comparison")
+    _pdf_section(pdf, "Protocol-Version Comparison", font_family=font_family)
     versions_df = comparisons_dataframe(result.version_comparisons)
     if versions_df.empty:
-        pdf.set_font(_PDF_FONT, "I", 10)
+        pdf.set_font(font_family, "I", 10)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(
             0, 6, "No protocols with multiple versions were available.",
             new_x="LMARGIN", new_y="NEXT",
         )
     else:
-        _pdf_table(pdf, versions_df)
+        _pdf_table(pdf, versions_df, font_family)
 
     # --- Missing dose ---
-    _pdf_section(pdf, "Missing-Dose Analysis")
-    _pdf_table(pdf, missing_dose_dataframe(result.missing))
+    _pdf_section(pdf, "Missing-Dose Analysis", font_family=font_family)
+    _pdf_table(pdf, missing_dose_dataframe(result.missing), font_family)
 
     # --- Disclaimer ---
     pdf.ln(8)
     pdf.set_draw_color(*_hex_to_rgb(LINE))
     pdf.line(15, pdf.get_y(), 195, pdf.get_y())
     pdf.ln(4)
-    pdf.set_font(_PDF_FONT, "I", 8)
+    pdf.set_font(font_family, "I", 8)
     pdf.set_text_color(*_hex_to_rgb(MUTED))
     pdf.multi_cell(0, 4, SAFETY_DISCLAIMER)
 
@@ -229,17 +226,17 @@ def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path) -> None:
 # ---- fpdf2 helper functions ----
 
 
-def _pdf_header(pdf: object, summary: dict) -> None:
+def _pdf_header(pdf: object, summary: dict, font_family: str = "Helvetica") -> None:
     """Render the report header block."""
-    pdf.set_font(_PDF_FONT, "B", 9)
+    pdf.set_font(font_family, "B", 9)
     pdf.set_text_color(*_hex_to_rgb(BLUE))
     pdf.cell(0, 5, "CT RADIATION-DOSE QUALITY IMPROVEMENT AUDIT", new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font(_PDF_FONT, "B", 22)
+    pdf.set_font(font_family, "B", 22)
     pdf.set_text_color(*_hex_to_rgb(INK))
     pdf.cell(0, 12, "dicom-dose-audit Report", new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font(_PDF_FONT, "", 10)
+    pdf.set_font(font_family, "", 10)
     pdf.set_text_color(*_hex_to_rgb(MUTED))
     subtitle = (
         f"{summary['start_date']} to {summary['end_date']}  |  "
@@ -256,7 +253,7 @@ def _pdf_header(pdf: object, summary: dict) -> None:
     pdf.ln(8)
 
 
-def _pdf_kpi_boxes(pdf: object, summary: dict) -> None:
+def _pdf_kpi_boxes(pdf: object, summary: dict, font_family: str = "Helvetica") -> None:
     """Render four KPI metric boxes in a row."""
     box_w = 40.5
     box_h = 22
@@ -277,27 +274,27 @@ def _pdf_kpi_boxes(pdf: object, summary: dict) -> None:
         pdf.set_draw_color(*_hex_to_rgb(LINE))
         pdf.rect(x, y, box_w, box_h, style="DF")
         pdf.set_xy(x + 3, y + 2)
-        pdf.set_font(_PDF_FONT, "", 8)
+        pdf.set_font(font_family, "", 8)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(box_w - 6, 4, label, new_x="LMARGIN", new_y="NEXT")
         pdf.set_xy(x + 3, y + 7)
-        pdf.set_font(_PDF_FONT, "B", 16)
+        pdf.set_font(font_family, "B", 16)
         pdf.set_text_color(*_hex_to_rgb(INK))
         pdf.cell(box_w - 6, 8, value, new_x="LMARGIN", new_y="NEXT")
         pdf.set_xy(x + 3, y + 15)
-        pdf.set_font(_PDF_FONT, "", 7)
+        pdf.set_font(font_family, "", 7)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(box_w - 6, 4, desc, new_x="LMARGIN", new_y="NEXT")
 
     pdf.set_y(y + box_h + 8)
 
 
-def _pdf_caveat(pdf: object) -> None:
+def _pdf_caveat(pdf: object, font_family: str = "Helvetica") -> None:
     """Render the outlier-safety caveat box."""
     pdf.set_fill_color(255, 248, 230)
     pdf.set_draw_color(*_hex_to_rgb(ORANGE))
     pdf.set_xy(15, pdf.get_y())
-    pdf.set_font(_PDF_FONT, "I", 9)
+    pdf.set_font(font_family, "I", 9)
     pdf.set_text_color(*_hex_to_rgb(INK))
     pdf.multi_cell(
         0, 5,
@@ -309,19 +306,19 @@ def _pdf_caveat(pdf: object) -> None:
     pdf.ln(3)
 
 
-def _pdf_section(pdf: object, title: str, spacing: int = 1) -> None:
+def _pdf_section(pdf: object, title: str, spacing: int = 1, font_family: str = "Helvetica") -> None:
     """Render a section heading."""
     pdf.ln(spacing * 4)
-    pdf.set_font(_PDF_FONT, "B", 14)
+    pdf.set_font(font_family, "B", 14)
     pdf.set_text_color(*_hex_to_rgb(INK))
     pdf.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(2)
 
 
-def _pdf_table(pdf: object, df: pd.DataFrame) -> None:
+def _pdf_table(pdf: object, df: pd.DataFrame, font_family: str = "Helvetica") -> None:
     """Render a pandas DataFrame as a styled table in the PDF."""
     if df.empty:
-        pdf.set_font(_PDF_FONT, "I", 10)
+        pdf.set_font(font_family, "I", 10)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(0, 6, "No data.", new_x="LMARGIN", new_y="NEXT")
         return
@@ -340,24 +337,24 @@ def _pdf_table(pdf: object, df: pd.DataFrame) -> None:
 
     row_h = 6
 
-    pdf.set_font(_PDF_FONT, "B", 8)
+    pdf.set_font(font_family, "B", 8)
     pdf.set_fill_color(*_hex_to_rgb(PANEL))
     pdf.set_text_color(*_hex_to_rgb(INK))
     for col_name in cols:
         pdf.cell(col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP")
     pdf.ln(row_h)
 
-    pdf.set_font(_PDF_FONT, "", 8)
+    pdf.set_font(font_family, "", 8)
     pdf.set_text_color(*_hex_to_rgb(INK))
     for _, row in df.iterrows():
         if pdf.get_y() + row_h > pdf.h - 20:
             pdf.add_page()
-            pdf.set_font(_PDF_FONT, "B", 8)
+            pdf.set_font(font_family, "B", 8)
             pdf.set_fill_color(*_hex_to_rgb(PANEL))
             for col_name in cols:
                 pdf.cell(col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP")
             pdf.ln(row_h)
-            pdf.set_font(_PDF_FONT, "", 8)
+            pdf.set_font(font_family, "", 8)
 
         for col_name in cols:
             val = row[col_name]
