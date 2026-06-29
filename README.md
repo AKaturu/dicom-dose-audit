@@ -12,16 +12,18 @@ Open-source CT radiation-dose audit tool for quality-improvement and research wo
 
 > Research and quality-improvement software only. This project is not a medical device, does not diagnose disease, and does not determine regulatory compliance by itself.
 
-**Validation status:** Software functionality has been tested using synthetic or public data as described below. This project has not undergone prospective clinical validation and is not intended for independent clinical decision-making.
+## Evidence Status
 
 | Evidence | Status |
 |---|---|
-| Unit tests | Complete |
-| Synthetic end-to-end test | Complete |
+| Unit and integration tests | Complete |
+| Synthetic end-to-end evaluation | Complete |
 | Public-data evaluation | Not completed |
-| Expert review | Not completed |
+| Independent expert review | Not completed |
 | Institutional validation | Not completed |
 | Prospective clinical validation | Not completed |
+
+This software is a research prototype and is not intended for independent clinical decision-making.
 
 ## Capabilities
 
