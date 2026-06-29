@@ -15,8 +15,8 @@ from .analysis import write_audit_outputs as write_audit_outputs
 __version__ = "0.1.0"
 
 __all__ = [
-    "__version__",
     "DoseAuditResult",
+    "__version__",
     "run_dose_audit",
     "write_audit_outputs",
 ]
