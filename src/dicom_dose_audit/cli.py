@@ -23,6 +23,7 @@ from .dicom import (
     records_to_dataframe,
     write_synthetic_dicom_dir,
 )
+from .protocol import load_dose_study_protocol, write_dose_study_protocol_template
 from .report import generate_dose_report
 
 app = typer.Typer(
@@ -194,6 +195,31 @@ def serve(
         str(port),
     ]
     raise typer.Exit(subprocess.run(cmd, check=False).returncode)
+
+
+@app.command("study-protocol-template")
+def study_protocol_template_command(
+    output: Annotated[Path, typer.Argument(help="Destination dose study protocol JSON.")],
+    force: Annotated[bool, typer.Option("--force", help="Overwrite existing file.")] = False,
+) -> None:
+    """Write an editable dose audit study protocol template."""
+    try:
+        path = write_dose_study_protocol_template(output, force=force)
+    except FileExistsError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    console.print(f"[green]Wrote dose study protocol template:[/green] {path}")
+
+
+@app.command("study-protocol-validate")
+def study_protocol_validate_command(
+    protocol: Annotated[Path, typer.Argument(help="Dose study protocol JSON to validate.")],
+) -> None:
+    """Validate and summarize a dose audit study protocol."""
+    loaded = load_dose_study_protocol(protocol)
+    console.print(f"[green]Loaded dose study protocol:[/green] {loaded.study_id}")
+    console.print(f"  Primary metric: {loaded.primary_metric}")
+    console.print(f"  Minimum studies: {loaded.minimum_studies}")
+    console.print(f"  Grouping columns: {', '.join(loaded.grouping_columns)}")
 
 
 def _print_summary_table(result: DoseAuditResult) -> None:

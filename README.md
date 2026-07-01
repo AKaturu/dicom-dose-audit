@@ -45,6 +45,10 @@ pip install -e ".[dev]"
 # Generate a shareable synthetic report bundle with no DICOM files and no PHI:
 dicom-dose-audit demo-bundle --output outputs/synthetic_demo_bundle --no-pdf
 
+# Create and validate a locked study protocol before external-data analysis:
+dicom-dose-audit study-protocol-template dose_study_protocol.json
+dicom-dose-audit study-protocol-validate dose_study_protocol.json
+
 # Launch the dashboard:
 dicom-dose-audit serve
 ```
@@ -63,6 +67,7 @@ dicom-dose-audit serve
 | Product requirements | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) |
 | Demo media generation | [docs/demo-media.md](docs/demo-media.md) |
 | Desktop releases | [docs/DESKTOP_RELEASES.md](docs/DESKTOP_RELEASES.md) |
+| Study protocol workflow | [docs/STUDY_PROTOCOL.md](docs/STUDY_PROTOCOL.md) |
 | Roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |
 | Research notes | [docs/RESEARCH.md](docs/RESEARCH.md) |
 | Contribution guide | [CONTRIBUTING.md](CONTRIBUTING.md) |
