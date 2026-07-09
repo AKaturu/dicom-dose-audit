@@ -61,7 +61,7 @@ def boxplot_by_protocol(df: pd.DataFrame, metric: str = COL_CTDI_VOL) -> str:
 
     _, ax = plt.subplots(figsize=(max(6, len(protocols) * 0.9), 4.5))
     ax.boxplot(data, tick_labels=protocols, patch_artist=True, vert=True)
-    for patch in ax.patches:  # type: ignore[union-attr]
+    for patch in ax.patches:
         patch.set_facecolor(BLUE)
         patch.set_alpha(0.7)
     metric_label = "CTDIvol (mGy)" if metric == COL_CTDI_VOL else "DLP (mGy*cm)"
@@ -88,7 +88,7 @@ def boxplot_by_scanner(df: pd.DataFrame, metric: str = COL_CTDI_VOL) -> str:
 
     _, ax = plt.subplots(figsize=(max(6, len(scanners) * 0.9), 4.5))
     ax.boxplot(data, tick_labels=scanners, patch_artist=True, vert=True)
-    for patch in ax.patches:  # type: ignore[union-attr]
+    for patch in ax.patches:
         patch.set_facecolor(GREEN)
         patch.set_alpha(0.7)
     metric_label = "CTDIvol (mGy)" if metric == COL_CTDI_VOL else "DLP (mGy*cm)"

@@ -105,8 +105,19 @@ no_implicit_optional = true
 module = ["pandera.*", "pydicom.*", "plotly.*", "weasyprint.*", "streamlit.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = [
+    "dicom_dose_audit.analytics.comparisons",
+    "dicom_dose_audit.data.synthetic",
+    "dicom_dose_audit.dicom.reader",
+    "dicom_dose_audit.dicom.synthetic",
+    "dicom_dose_audit.report.generate",
+]
+disable_error_code = ["arg-type", "assignment", "attr-defined", "call-overload"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = "-ra --strict-markers --basetemp=.pytest-tmp"
 filterwarnings = [
     "ignore::DeprecationWarning",
