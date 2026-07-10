@@ -6,6 +6,8 @@ The repository includes a short synthetic demo animation for GitHub:
 - `docs/assets/demo.gif`
 - `docs/assets/demo.mp4`
 
+The GIF is the inline GitHub README preview. It advances through bundle generation, quality signals, and protocol coverage; selecting it in the README opens the full MP4 walkthrough.
+
 The footage is generated from the real `dicom-dose-audit demo-bundle` command. It uses synthetic CT dose rows only and does not include DICOM files, protected health information, clinical conclusions, or regulatory determinations.
 
 ## Regenerate

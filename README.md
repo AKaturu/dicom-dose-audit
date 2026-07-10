@@ -8,7 +8,9 @@ Open-source CT radiation-dose audit tool for quality-improvement and research wo
 
 `dicom-dose-audit` reads CTDIvol and DLP values from DICOM metadata or dose structured reports, groups studies by protocol, scanner, and patient-size category, detects missing dose metadata, flags statistical outliers, compares protocol versions, plots monthly trends, and generates quality-improvement reports.
 
-![Synthetic DICOM dose audit demo](docs/assets/demo.gif)
+[![Synthetic DICOM dose audit demo](docs/assets/demo.gif)](https://cdn.jsdelivr.net/gh/AKaturu/dicom-dose-audit@main/docs/assets/demo.mp4)
+
+[Play the full demo video](https://cdn.jsdelivr.net/gh/AKaturu/dicom-dose-audit@main/docs/assets/demo.mp4)
 
 > Research and quality-improvement software only. This project is not a medical device, does not diagnose disease, and does not determine regulatory compliance by itself.
 
