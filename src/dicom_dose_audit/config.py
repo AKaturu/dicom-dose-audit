@@ -103,13 +103,18 @@ TAG_STUDY_DATE = (0x0008, 0x0020)
 TAG_STUDY_UID = (0x0020, 0x000D)
 TAG_PATIENT_ID = (0x0010, 0x0020)
 
-# DCM (DICOM Modality) code values used inside RDSR content items.
-CODE_CTDI_VOL = "113813"  # "CT Dose Information" container often holds CTDIvol
-CODE_MEAN_CTDI_VOL = "113838"  # "Mean CTDIvol"
-CODE_DLP = "113814"  # "CT Dose Length Product" / "DLP"
-CODE_SCANNED_LENGTH = "113829"  # "Scanned Length"
-CODE_CT_ACQUISITION_TYPE = "113816"
-CODE_PROTOCOL = "113919"  # "CT Acquisition Type" / protocol context
+# DCM code values from PS3.16 TID 10012-10014.
+CODE_CT_ACQUISITION = "113819"  # "CT Acquisition" event container
+CODE_CT_DOSE = "113829"  # "CT Dose" container within an event
+CODE_MEAN_CTDI_VOL = "113830"  # "Mean CTDIvol"
+CODE_DLP = "113838"  # event-level "DLP"
+CODE_SCANNED_LENGTH = "113825"  # "Scanning Length" (standard unit: mm)
+CODE_DLP_TOTAL = "113813"  # accumulated "CT Dose Length Product Total"
+CODE_CT_ACQUISITION_TYPE = "113820"
+CODE_PROTOCOL = "125203"  # "Acquisition Protocol"
+
+# Backward-compatible name for callers that imported this constant directly.
+CODE_CTDI_VOL = CODE_MEAN_CTDI_VOL
 
 
 # --- Statistical audit defaults --------------------------------------------

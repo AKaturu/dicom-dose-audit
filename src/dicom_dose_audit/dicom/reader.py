@@ -10,7 +10,7 @@ shared dose-data contract (see ``config.py``):
 
 2. **CT Radiation Dose Structured Report (RDSR)** objects — dose is encoded as
    coded *content items* inside a recursive ``ContentSequence``. Each irradiation
-   event carries a Mean CTDIvol (DCM code 113838) and a DLP (DCM code 113814).
+   event carries a Mean CTDIvol (DCM code 113830) and a DLP (DCM code 113838).
    The parser walks the tree and collects per-event dose values.
 
 The reader is deliberately tolerant: missing dose attributes, unknown SOP
@@ -22,6 +22,7 @@ into the validated dose dataframe.
 from __future__ import annotations
 
 import logging
+import math
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,6 +30,7 @@ from pathlib import Path
 import pandas as pd
 
 from ..config import (
+    CODE_CT_ACQUISITION,
     CODE_CTDI_VOL,
     CODE_DLP,
     CODE_MEAN_CTDI_VOL,
@@ -173,29 +175,32 @@ def _read_rdsr(ds: object) -> DicomRecord:
     protocol = _derive_protocol(ds) or "UNSPECIFIED"
 
     events = list(_iter_irradiation_events(ds))
-    ctdi_values: list[tuple[float, float]] = []  # (ctdi_vol, dlp) for weighting
+    ctdi_values: list[tuple[float, float | None]] = []
     total_dlp = 0.0
     scan_length_total = 0.0
     found_any = False
 
     for ctdi, dlp, scan_len in events:
         found_any = True
-        weight = dlp if dlp is not None and dlp > 0 else 1.0
         if ctdi is not None:
-            ctdi_values.append((ctdi, weight))
+            ctdi_values.append((ctdi, dlp if dlp is not None and dlp > 0 else None))
         if dlp is not None:
             total_dlp += dlp
         if scan_len is not None:
             scan_length_total += scan_len
 
-    # Dose-weighted mean CTDIvol across events (falls back to plain mean).
+    # Weight only when every CTDIvol has a positive event DLP. Mixing DLP weights
+    # with arbitrary unit weights would itself bias the result.
     mean_ctdi: float | None = None
     if ctdi_values:
-        total_weight = sum(w for _, w in ctdi_values)
-        if total_weight > 0:
-            mean_ctdi = sum(c * w for c, w in ctdi_values) / total_weight
+        if all(weight is not None for _, weight in ctdi_values):
+            total_weight = math.fsum(float(weight) for _, weight in ctdi_values)
+            mean_ctdi = (
+                math.fsum(ctdi * float(weight) for ctdi, weight in ctdi_values)
+                / total_weight
+            )
         else:
-            mean_ctdi = sum(c for c, _ in ctdi_values) / len(ctdi_values)
+            mean_ctdi = math.fsum(ctdi for ctdi, _ in ctdi_values) / len(ctdi_values)
 
     record = DicomRecord(
         study_uid=study_uid,
@@ -228,35 +233,127 @@ def _iter_irradiation_events(ds: object) -> Iterator[tuple[float | None, float |
     content_seq = _safe_get(ds, "ContentSequence")
     if content_seq is None:
         return
+
+    event_items = list(_find_content_items(content_seq, {CODE_CT_ACQUISITION, "130501"}))
+    if event_items:
+        for event_item in event_items:
+            event = _extract_event_values(event_item)
+            if any(value is not None for value in event):
+                yield event
+        return
+
+    # Vendor fallback for non-conformant trees without a recognized event root.
     yield from _walk_content(content_seq)
 
 
 def _walk_content(seq: Iterable[object]) -> Iterator[tuple[float | None, float | None, float | None]]:
-    """Recursively walk content items, yielding parsed dose triples.
+    """Group loose dose siblings while recursively walking non-standard trees.
 
-    Each content item has a ``ConceptNameCodeSequence`` whose first code's
-    ``CodeValue`` identifies the quantity (Mean CTDIvol, DLP, Scanned Length).
-    Numeric content items carry the value in ``NumericValue``.
+    Standard RDSRs are handled by their event containers above. This fallback
+    keeps sibling CTDIvol, DLP, and scanning-length values together so weighted
+    aggregation still works for vendor trees that omit the event concept code.
     """
-    for item in seq:
-        # A content item may itself contain child content (relationship CONTAINER).
-        children = _safe_get(item, "ContentSequence")
-        if children:
-            yield from _walk_content(children)
+    direct: list[float | None] = [None, None, None]
+    nested: list[tuple[float | None, float | None, float | None]] = []
 
+    for item in seq:
         code_value = _concept_code_value(item)
         if code_value in (CODE_MEAN_CTDI_VOL, CODE_CTDI_VOL):
-            ctdi = _safe_float(item, "NumericValue")
+            ctdi = _measurement_value(item, quantity="ctdi")
             if ctdi is not None:
-                yield (ctdi, None, None)
+                direct[0] = ctdi
         elif code_value == CODE_DLP:
-            dlp = _safe_float(item, "NumericValue")
+            dlp = _measurement_value(item, quantity="dlp")
             if dlp is not None:
-                yield (None, dlp, None)
+                direct[1] = dlp
         elif code_value == CODE_SCANNED_LENGTH:
-            length = _safe_float(item, "NumericValue")
+            length = _measurement_value(item, quantity="length")
             if length is not None:
-                yield (None, None, length)
+                direct[2] = length
+
+        children = _safe_get(item, "ContentSequence")
+        if children:
+            nested.extend(_walk_content(children))
+
+    if any(value is not None for value in direct):
+        if len(nested) == 1:
+            yield _merge_event_values((direct[0], direct[1], direct[2]), nested[0])
+        else:
+            yield direct[0], direct[1], direct[2]
+            yield from nested
+    else:
+        yield from nested
+
+
+def _find_content_items(seq: Iterable[object], codes: set[str]) -> Iterator[object]:
+    """Yield matching content items without descending into a matched event."""
+    for item in seq:
+        if _concept_code_value(item) in codes:
+            yield item
+            continue
+        children = _safe_get(item, "ContentSequence")
+        if children:
+            yield from _find_content_items(children, codes)
+
+
+def _extract_event_values(item: object) -> tuple[float | None, float | None, float | None]:
+    """Extract one event's Mean CTDIvol, DLP, and scanning length."""
+    values: list[float | None] = [None, None, None]
+    descendants = _safe_get(item, "ContentSequence") or []
+    for descendant in _iter_content_items(descendants):
+        code_value = _concept_code_value(descendant)
+        if code_value in (CODE_MEAN_CTDI_VOL, CODE_CTDI_VOL) and values[0] is None:
+            values[0] = _measurement_value(descendant, quantity="ctdi")
+        elif code_value == CODE_DLP and values[1] is None:
+            values[1] = _measurement_value(descendant, quantity="dlp")
+        elif code_value == CODE_SCANNED_LENGTH and values[2] is None:
+            values[2] = _measurement_value(descendant, quantity="length")
+    return values[0], values[1], values[2]
+
+
+def _iter_content_items(seq: Iterable[object]) -> Iterator[object]:
+    for item in seq:
+        yield item
+        children = _safe_get(item, "ContentSequence")
+        if children:
+            yield from _iter_content_items(children)
+
+
+def _measurement_value(item: object, *, quantity: str) -> float | None:
+    """Read a NUM value and normalize supported UCUM units."""
+    measured_values = _safe_get(item, "MeasuredValueSequence")
+    measured = next(iter(measured_values), None) if measured_values else item
+    value = _safe_float(measured, "NumericValue")
+    if value is None:
+        return None
+
+    unit_sequence = _safe_get(measured, "MeasurementUnitsCodeSequence")
+    unit_item = next(iter(unit_sequence), None) if unit_sequence else None
+    unit = (_safe_str(unit_item, "CodeValue") or "").replace(" ", "").lower()
+
+    if quantity == "length":
+        if unit in {"mm", "millimeter", "millimetre"}:
+            return value / 10.0
+        return value
+    if quantity == "ctdi" and unit in {"gy", "gray"}:
+        return value * 1000.0
+    if quantity == "dlp":
+        if unit in {"gy.cm", "gy*cm", "gycm"}:
+            return value * 1000.0
+        if unit in {"mgy.mm", "mgy*mm", "mgymm"}:
+            return value / 10.0
+    return value
+
+
+def _merge_event_values(
+    outer: tuple[float | None, float | None, float | None],
+    inner: tuple[float | None, float | None, float | None],
+) -> tuple[float | None, float | None, float | None]:
+    return (
+        outer[0] if outer[0] is not None else inner[0],
+        outer[1] if outer[1] is not None else inner[1],
+        outer[2] if outer[2] is not None else inner[2],
+    )
 
 
 def _concept_code_value(item: object) -> str | None:
