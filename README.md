@@ -44,6 +44,9 @@ This software is a research prototype and is not intended for independent clinic
 ```bash
 pip install -e ".[dev]"
 
+# Optional: use WeasyPrint when its native system libraries are available.
+pip install -e ".[pdf]"
+
 # Generate a shareable synthetic report bundle with no DICOM files and no PHI:
 dicom-dose-audit demo-bundle --output outputs/synthetic_demo_bundle --no-pdf
 

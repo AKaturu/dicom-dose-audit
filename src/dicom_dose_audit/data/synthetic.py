@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..config import DEFAULT_SIZE_CATEGORY
+from ..config import COL_SCANNER_MANUFACTURER, DEFAULT_SIZE_CATEGORY
 from ..dicom.synthetic import generate_synthetic_study_specs
 from ..schemas import validate_dataframe
 
@@ -52,6 +52,11 @@ def generate_synthetic_dose_csv(
                 "protocol": str(s["protocol"]),
                 "protocol_version": str(s["protocol_version"]) if s.get("protocol_version") else None,
                 "scanner_model": str(s["scanner_model"]) if s.get("scanner_model") else None,
+                COL_SCANNER_MANUFACTURER: (
+                    str(s["scanner_manufacturer"])
+                    if s.get("scanner_manufacturer")
+                    else None
+                ),
                 "site": str(s["site"]) if s.get("site") else None,
                 "size_category": str(s.get("size_category") or DEFAULT_SIZE_CATEGORY),
                 "ctdi_vol_mgy": s["ctdi_vol"] if s["ctdi_vol"] is not None else None,

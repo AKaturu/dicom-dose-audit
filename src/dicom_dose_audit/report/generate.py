@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 from jinja2 import Environment, select_autoescape
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 from ..analysis import DoseAuditResult, audit_summary_dict, summary_metrics_frame
 from ..analytics.comparisons import comparisons_dataframe
@@ -140,11 +140,16 @@ def _register_fonts(pdf: object) -> str:
     dejavu = _find_dejavu_sans()
     if dejavu:
         d = dejavu.parent
-        pdf.add_font("DejaVu", "", str(d / "DejaVuSans.ttf"), uni=True)
-        pdf.add_font("DejaVu", "B", str(d / "DejaVuSans-Bold.ttf"), uni=True)
-        pdf.add_font("DejaVu", "I", str(d / "DejaVuSans-Oblique.ttf"), uni=True)
-        pdf.add_font("DejaVu", "BI", str(d / "DejaVuSans-BoldOblique.ttf"), uni=True)
-        return "DejaVu"
+        variants = {
+            "": d / "DejaVuSans.ttf",
+            "B": d / "DejaVuSans-Bold.ttf",
+            "I": d / "DejaVuSans-Oblique.ttf",
+            "BI": d / "DejaVuSans-BoldOblique.ttf",
+        }
+        if all(path.is_file() for path in variants.values()):
+            for style, path in variants.items():
+                pdf.add_font("DejaVu", style, str(path), uni=True)
+            return "DejaVu"
     return "Helvetica"  # built-in latin-1 fallback
 
 
@@ -431,7 +436,16 @@ def render_report_html(result: DoseAuditResult) -> str:
     )
 
 
-def _to_html(df: pd.DataFrame, *, empty: str = "No rows.") -> str:
+def _to_html(df: pd.DataFrame, *, empty: str = "No rows.") -> Markup:
+    """Return trusted table markup while escaping every dataframe value."""
     if df.empty:
-        return f'<p class="empty">{empty}</p>'
-    return df.to_html(index=False, classes="data-table", border=0, na_rep="")
+        return Markup('<p class="empty">') + escape(empty) + Markup("</p>")
+    return Markup(
+        df.to_html(
+            index=False,
+            classes="data-table",
+            border=0,
+            na_rep="",
+            escape=True,
+        )
+    )

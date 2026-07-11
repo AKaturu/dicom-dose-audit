@@ -113,8 +113,6 @@ def build_ct_image_dataset(
     # Cosmetic fields so the object looks complete.
     ds.PatientBirthDate = ""
     ds.AccessionNumber = ""
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
     return ds
 
 
@@ -233,8 +231,6 @@ def build_rdsr_dataset(
         event_items.append(event)
 
     ds.ContentSequence = event_items
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
     return ds
 
 
@@ -295,6 +291,7 @@ def generate_synthetic_study_specs(
                 "protocol": protocol,
                 "protocol_version": version,
                 "scanner_model": scanner,
+                "scanner_manufacturer": _MANUFACTURERS.get(scanner, "Unknown"),
                 "site": site,
                 "size_category": size,
                 "ctdi_vol": round(float(ctdi), 2) if ctdi is not None else None,
@@ -330,6 +327,11 @@ def specs_to_records(specs: list[dict[str, object]]) -> list[DicomRecord]:
                 dlp=s["dlp"] if s["dlp"] is not None else None,
                 protocol_version=str(s["protocol_version"]) if s.get("protocol_version") else None,
                 scanner_model=str(s["scanner_model"]) if s.get("scanner_model") else None,
+                scanner_manufacturer=(
+                    str(s["scanner_manufacturer"])
+                    if s.get("scanner_manufacturer")
+                    else None
+                ),
                 site=str(s["site"]) if s.get("site") else None,
                 size_category=str(s.get("size_category") or DEFAULT_SIZE_CATEGORY),
                 kvp=float(s["kvp"]) if s.get("kvp") is not None else None,
@@ -385,7 +387,7 @@ def write_synthetic_dicom_dir(
                 ctdi_vol=s["ctdi_vol"],
                 scanner_model=scanner,
             )
-        ds.save_as(str(directory / f"study_{i:05d}.dcm"), write_like_original=False)
+        ds.save_as(str(directory / f"study_{i:05d}.dcm"), enforce_file_format=True)
 
     # Re-read to prove the round-trip and return the report.
     from .reader import ingest_dicom_dir

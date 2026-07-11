@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Correct DICOM RDSR concept mappings and DLP-weighted multi-event CTDIvol aggregation
+- Read standard SR `MeasuredValueSequence` values and normalize supported UCUM units
+- Preserve scanner manufacturer in synthetic CSV output
+- Render escaped dataframe values as functional HTML report tables
+- Fall back safely when only part of the DejaVu font family is installed
+
+### Changed
+- Make WeasyPrint an optional `pdf` extra; fpdf2 remains the portable default fallback
+
 ## 0.1.0 - 2026-06-28
 
 ### Added

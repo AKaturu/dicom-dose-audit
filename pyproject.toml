@@ -9,7 +9,7 @@ description = "Open-source CT radiation-dose audit tool: read CTDIvol/DLP from D
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
-authors = [{ name = "Abhinav Katuru" }]
+authors = [{ name = "Abinav Katuru" }]
 keywords = [
     "dicom",
     "radiation-dose",
@@ -41,13 +41,13 @@ dependencies = [
     "typer>=0.12",
     "rich>=13.7",
     "jinja2>=3.1",
-    "weasyprint>=60",
     "fpdf2>=2.7",
     "pydantic>=2.6",
 ]
 
 [project.optional-dependencies]
 app = ["streamlit>=1.36"]
+pdf = ["weasyprint>=60"]
 packaging = ["pyinstaller>=6.0"]
 media = [
     "imageio>=2.34",
