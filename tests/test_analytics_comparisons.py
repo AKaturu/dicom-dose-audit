@@ -113,12 +113,22 @@ def test_comparisons_dataframe_empty():
 
 def test_protocol_comparison_dataclass():
     c = ProtocolComparison(
-        protocol="CT Head", version_a="v1", version_b="v2",
-        metric=COL_CTDI_VOL, n_a=20, n_b=20,
-        mean_a=35.0, mean_b=28.0, median_a=34.5, median_b=27.8,
-        mean_diff=-7.0, median_diff=-6.7,
-        ci_lower=-10.0, ci_upper=-4.0,
-        p_value_mannwhitney=0.001, n_bootstrap=1000,
+        protocol="CT Head",
+        version_a="v1",
+        version_b="v2",
+        metric=COL_CTDI_VOL,
+        n_a=20,
+        n_b=20,
+        mean_a=35.0,
+        mean_b=28.0,
+        median_a=34.5,
+        median_b=27.8,
+        mean_diff=-7.0,
+        median_diff=-6.7,
+        ci_lower=-10.0,
+        ci_upper=-4.0,
+        p_value_mannwhitney=0.001,
+        n_bootstrap=1000,
     )
     assert c.mean_diff == -7.0
     assert c.n_bootstrap == 1000

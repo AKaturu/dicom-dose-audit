@@ -49,7 +49,9 @@ def test_partial_missing(df_with_missing):
 
 
 def test_empty_dataframe():
-    df = pd.DataFrame(columns=[COL_STUDY_UID, COL_PATIENT_ID, COL_STUDY_DATE, COL_PROTOCOL, COL_CTDI_VOL, COL_DLP])
+    df = pd.DataFrame(
+        columns=[COL_STUDY_UID, COL_PATIENT_ID, COL_STUDY_DATE, COL_PROTOCOL, COL_CTDI_VOL, COL_DLP]
+    )
     report = analyze_missing_dose(df)
     assert report.n_total == 0
     assert report.n_studies_missing_ctdi == 0

@@ -27,6 +27,8 @@ from pydicom.uid import (
 )
 
 from ..config import (
+    CODE_CT_ACQUISITION,
+    CODE_CT_DOSE,
     CODE_DLP,
     CODE_MEAN_CTDI_VOL,
     CODE_SCANNED_LENGTH,
@@ -45,8 +47,12 @@ _PROTOCOL_BASELINES: dict[str, dict[str, float]] = {
 }
 
 _SCANNERS = ["GE Revolution", "Siemens SOMATOM", "Philips Brilliance", "Canon Aquilion"]
-_MANUFACTURERS = {"GE Revolution": "GE", "Siemens SOMATOM": "Siemens",
-                  "Philips Brilliance": "Philips", "Canon Aquilion": "Canon"}
+_MANUFACTURERS = {
+    "GE Revolution": "GE",
+    "Siemens SOMATOM": "Siemens",
+    "Philips Brilliance": "Philips",
+    "Canon Aquilion": "Canon",
+}
 _SITES = ["North Hospital", "South Hospital", "Community Imaging"]
 _SIZES = ["small", "medium", "large", "pediatric"]
 
@@ -111,8 +117,6 @@ def build_ct_image_dataset(
     # Cosmetic fields so the object looks complete.
     ds.PatientBirthDate = ""
     ds.AccessionNumber = ""
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
     return ds
 
 
@@ -133,6 +137,8 @@ def _content_item(
     text_value: str | None = None,
     children: list[Dataset] | None = None,
     relationship_type: str = "CONTAINS",
+    unit_code: str | None = None,
+    unit_meaning: str | None = None,
 ) -> Dataset:
     """Build a single RDSR content item (concept name + measured value)."""
     item = Dataset()
@@ -140,8 +146,12 @@ def _content_item(
     item.ValueType = "NUM" if numeric_value is not None else ("TEXT" if text_value else "CONTAINER")
     item.ConceptNameCodeSequence = [_code_item(name_code, name_meaning)]
     if numeric_value is not None:
-        item.NumericValue = float(numeric_value)
-        item.MeasurementUnitsCodeSequence = [_code_item("1", "unit", "UCUM")]
+        measured = Dataset()
+        measured.NumericValue = float(numeric_value)
+        measured.MeasurementUnitsCodeSequence = [
+            _code_item(unit_code or "1", unit_meaning or "unit", "UCUM")
+        ]
+        item.MeasuredValueSequence = [measured]
     if text_value is not None:
         item.TextValue = text_value
     if children:
@@ -191,17 +201,40 @@ def build_rdsr_dataset(
     # Build per-event CONTAINER content items with coded dose children.
     event_items: list[Dataset] = []
     for i, ev in enumerate(events):
-        children = [
-            _content_item(CODE_MEAN_CTDI_VOL, "Mean CTDIvol", numeric_value=ev["ctdi_vol"]),
-            _content_item(CODE_DLP, "DLP", numeric_value=ev["dlp"]),
-            _content_item(CODE_SCANNED_LENGTH, "Scanned Length", numeric_value=ev["scan_length"]),
+        dose_children = [
+            _content_item(
+                CODE_MEAN_CTDI_VOL,
+                "Mean CTDIvol",
+                numeric_value=ev["ctdi_vol"],
+                unit_code="mGy",
+                unit_meaning="mGy",
+            ),
+            _content_item(
+                CODE_DLP,
+                "DLP",
+                numeric_value=ev["dlp"],
+                unit_code="mGy.cm",
+                unit_meaning="mGy.cm",
+            ),
         ]
-        event = _content_item("113913", f"Irradiation Event {i + 1}", children=children)
+        children = [
+            _content_item(
+                CODE_SCANNED_LENGTH,
+                "Scanning Length",
+                numeric_value=ev["scan_length"] * 10.0,
+                unit_code="mm",
+                unit_meaning="mm",
+            ),
+            _content_item(CODE_CT_DOSE, "CT Dose", children=dose_children),
+        ]
+        event = _content_item(
+            CODE_CT_ACQUISITION,
+            f"CT Acquisition {i + 1}",
+            children=children,
+        )
         event_items.append(event)
 
     ds.ContentSequence = event_items
-    ds.is_little_endian = True
-    ds.is_implicit_VR = False
     return ds
 
 
@@ -262,6 +295,7 @@ def generate_synthetic_study_specs(
                 "protocol": protocol,
                 "protocol_version": version,
                 "scanner_model": scanner,
+                "scanner_manufacturer": _MANUFACTURERS.get(scanner, "Unknown"),
                 "site": site,
                 "size_category": size,
                 "ctdi_vol": round(float(ctdi), 2) if ctdi is not None else None,
@@ -297,11 +331,18 @@ def specs_to_records(specs: list[dict[str, object]]) -> list[DicomRecord]:
                 dlp=s["dlp"] if s["dlp"] is not None else None,
                 protocol_version=str(s["protocol_version"]) if s.get("protocol_version") else None,
                 scanner_model=str(s["scanner_model"]) if s.get("scanner_model") else None,
+                scanner_manufacturer=(
+                    str(s["scanner_manufacturer"]) if s.get("scanner_manufacturer") else None
+                ),
                 site=str(s["site"]) if s.get("site") else None,
                 size_category=str(s.get("size_category") or DEFAULT_SIZE_CATEGORY),
                 kvp=float(s["kvp"]) if s.get("kvp") is not None else None,
-                tube_current=float(s["tube_current"]) if s.get("tube_current") is not None else None,
-                scan_length_cm=float(s["scan_length_cm"]) if s.get("scan_length_cm") is not None else None,
+                tube_current=float(s["tube_current"])
+                if s.get("tube_current") is not None
+                else None,
+                scan_length_cm=float(s["scan_length_cm"])
+                if s.get("scan_length_cm") is not None
+                else None,
                 has_dose_sr=s.get("source_kind") == "rdsr",
                 source="synthetic",
             )
@@ -352,7 +393,7 @@ def write_synthetic_dicom_dir(
                 ctdi_vol=s["ctdi_vol"],
                 scanner_model=scanner,
             )
-        ds.save_as(str(directory / f"study_{i:05d}.dcm"), write_like_original=False)
+        ds.save_as(str(directory / f"study_{i:05d}.dcm"), enforce_file_format=True)
 
     # Re-read to prove the round-trip and return the report.
     from .reader import ingest_dicom_dir

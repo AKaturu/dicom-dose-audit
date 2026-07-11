@@ -59,10 +59,18 @@ def test_unknown_stratifier_returns_empty(sample_df):
 
 def test_outlier_flag_dataclass():
     f = OutlierFlag(
-        study_uid="s1", patient_id="p1", study_date="2024-01-01",
-        protocol="CT Head", metric=COL_CTDI_VOL, value=80.0,
-        lower_fence=10.0, upper_fence=50.0, iqr=10.0,
-        mad_z_score=4.5, severity="outlier", method="both",
+        study_uid="s1",
+        patient_id="p1",
+        study_date="2024-01-01",
+        protocol="CT Head",
+        metric=COL_CTDI_VOL,
+        value=80.0,
+        lower_fence=10.0,
+        upper_fence=50.0,
+        iqr=10.0,
+        mad_z_score=4.5,
+        severity="outlier",
+        method="both",
     )
     assert f.study_uid == "s1"
     assert f.metric == COL_CTDI_VOL
@@ -80,9 +88,18 @@ def test_outliers_dataframe_empty():
     df = outliers_dataframe([])
     assert df.empty
     assert list(df.columns) == [
-        "study_uid", "patient_id", "study_date", "protocol",
-        "metric", "value", "lower_fence", "upper_fence",
-        "iqr", "mad_z_score", "severity", "method",
+        "study_uid",
+        "patient_id",
+        "study_date",
+        "protocol",
+        "metric",
+        "value",
+        "lower_fence",
+        "upper_fence",
+        "iqr",
+        "mad_z_score",
+        "severity",
+        "method",
     ]
 
 

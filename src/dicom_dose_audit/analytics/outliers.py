@@ -176,9 +176,18 @@ def outliers_dataframe(flags: list[OutlierFlag]) -> pd.DataFrame:
     if not flags:
         return pd.DataFrame(
             columns=[
-                "study_uid", "patient_id", "study_date", "protocol",
-                "metric", "value", "lower_fence", "upper_fence",
-                "iqr", "mad_z_score", "severity", "method",
+                "study_uid",
+                "patient_id",
+                "study_date",
+                "protocol",
+                "metric",
+                "value",
+                "lower_fence",
+                "upper_fence",
+                "iqr",
+                "mad_z_score",
+                "severity",
+                "method",
             ]
         )
     rows: list[dict[str, Any]] = []

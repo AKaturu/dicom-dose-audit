@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 from jinja2 import Environment, select_autoescape
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 from ..analysis import DoseAuditResult, audit_summary_dict, summary_metrics_frame
 from ..analytics.comparisons import comparisons_dataframe
@@ -40,8 +40,6 @@ PANEL = "#f5f7fa"
 BLUE = "#1769aa"
 GREEN = "#1f7a4d"
 ORANGE = "#b54d12"
-
-
 
 
 @dataclass(frozen=True)
@@ -140,15 +138,22 @@ def _register_fonts(pdf: object) -> str:
     dejavu = _find_dejavu_sans()
     if dejavu:
         d = dejavu.parent
-        pdf.add_font("DejaVu", "", str(d / "DejaVuSans.ttf"), uni=True)
-        pdf.add_font("DejaVu", "B", str(d / "DejaVuSans-Bold.ttf"), uni=True)
-        pdf.add_font("DejaVu", "I", str(d / "DejaVuSans-Oblique.ttf"), uni=True)
-        pdf.add_font("DejaVu", "BI", str(d / "DejaVuSans-BoldOblique.ttf"), uni=True)
-        return "DejaVu"
+        variants = {
+            "": d / "DejaVuSans.ttf",
+            "B": d / "DejaVuSans-Bold.ttf",
+            "I": d / "DejaVuSans-Oblique.ttf",
+            "BI": d / "DejaVuSans-BoldOblique.ttf",
+        }
+        if all(path.is_file() for path in variants.values()):
+            for style, path in variants.items():
+                pdf.add_font("DejaVu", style, str(path), uni=True)
+            return "DejaVu"
     return "Helvetica"  # built-in latin-1 fallback
 
 
-def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path, font_family: str = "Helvetica") -> None:
+def _write_pdf_fpdf2(
+    result: DoseAuditResult, pdf_path: Path, font_family: str = "Helvetica"
+) -> None:
     """Generate a styled PDF using fpdf2 as a cross-platform fallback."""
     from fpdf import FPDF
 
@@ -201,8 +206,11 @@ def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path, font_family: str =
         pdf.set_font(font_family, "I", 10)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(
-            0, 6, "No protocols with multiple versions were available.",
-            new_x="LMARGIN", new_y="NEXT",
+            0,
+            6,
+            "No protocols with multiple versions were available.",
+            new_x="LMARGIN",
+            new_y="NEXT",
         )
     else:
         _pdf_table(pdf, versions_df, font_family)
@@ -297,7 +305,8 @@ def _pdf_caveat(pdf: object, font_family: str = "Helvetica") -> None:
     pdf.set_font(font_family, "I", 9)
     pdf.set_text_color(*_hex_to_rgb(INK))
     pdf.multi_cell(
-        0, 5,
+        0,
+        5,
         "Flagged studies are statistical outliers within their protocol group. "
         "This is NOT a clinical-safety determination.",
         border="L",
@@ -352,7 +361,9 @@ def _pdf_table(pdf: object, df: pd.DataFrame, font_family: str = "Helvetica") ->
             pdf.set_font(font_family, "B", 8)
             pdf.set_fill_color(*_hex_to_rgb(PANEL))
             for col_name in cols:
-                pdf.cell(col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP")
+                pdf.cell(
+                    col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP"
+                )
             pdf.ln(row_h)
             pdf.set_font(font_family, "", 8)
 
@@ -398,8 +409,16 @@ def _pdf_embed_plot(pdf: object, data_uri: str) -> None:
 
 def render_report_html(result: DoseAuditResult) -> str:
     """Render the report into an HTML string."""
-    template_text = files("dicom_dose_audit.report").joinpath("templates", "report.html").read_text()
-    css = files("dicom_dose_audit.report").joinpath("templates", "styles.css").read_text()
+    template_text = (
+        files("dicom_dose_audit.report")
+        .joinpath("templates", "report.html")
+        .read_text(encoding="utf-8")
+    )
+    css = (
+        files("dicom_dose_audit.report")
+        .joinpath("templates", "styles.css")
+        .read_text(encoding="utf-8")
+    )
     env = Environment(autoescape=select_autoescape(["html", "xml"]))
     template = env.from_string(template_text)
 
@@ -416,7 +435,9 @@ def render_report_html(result: DoseAuditResult) -> str:
         missing_ctdi=summary["n_studies_missing_ctdi"],
         missing_dlp=summary["n_studies_missing_dlp"],
         summary_table=_to_html(summary_metrics_frame(result)),
-        outliers_table=_to_html(outliers_dataframe(result.outliers), empty="No statistical outliers flagged."),
+        outliers_table=_to_html(
+            outliers_dataframe(result.outliers), empty="No statistical outliers flagged."
+        ),
         versions_table=_to_html(
             comparisons_dataframe(result.version_comparisons),
             empty="No protocols with multiple versions were available.",
@@ -431,7 +452,16 @@ def render_report_html(result: DoseAuditResult) -> str:
     )
 
 
-def _to_html(df: pd.DataFrame, *, empty: str = "No rows.") -> str:
+def _to_html(df: pd.DataFrame, *, empty: str = "No rows.") -> Markup:
+    """Return trusted table markup while escaping every dataframe value."""
     if df.empty:
-        return f'<p class="empty">{empty}</p>'
-    return df.to_html(index=False, classes="data-table", border=0, na_rep="")
+        return Markup('<p class="empty">') + escape(empty) + Markup("</p>")
+    return Markup(
+        df.to_html(
+            index=False,
+            classes="data-table",
+            border=0,
+            na_rep="",
+            escape=True,
+        )
+    )

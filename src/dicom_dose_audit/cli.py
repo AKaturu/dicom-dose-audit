@@ -50,9 +50,7 @@ def demo(
     dicom_dir = output / "dicom_synthetic"
     specs, ingest_report = write_synthetic_dicom_dir(dicom_dir, n=n, seed=seed)
 
-    console.print(
-        f"[green]Wrote {len(specs)} synthetic DICOM studies:[/green] {dicom_dir}"
-    )
+    console.print(f"[green]Wrote {len(specs)} synthetic DICOM studies:[/green] {dicom_dir}")
     console.print(
         f"  {ingest_report.ct_image_records} CT images, "
         f"{ingest_report.rdsr_records} RDSR documents, "
@@ -119,13 +117,14 @@ def ingest_command(
     """Parse DICOM files from a directory and write a dose CSV."""
     report = ingest_dicom_dir(dicom_dir)
     console.print(
-        f"[green]Scanned {report.scanned} files, "
-        f"parsed {report.total_records} dose records[/green]"
+        f"[green]Scanned {report.scanned} files, parsed {report.total_records} dose records[/green]"
     )
     if report.skipped_non_dicom:
         console.print(f"  [yellow]{report.skipped_non_dicom} non-DICOM files skipped[/yellow]")
     if report.skipped_unsupported:
-        console.print(f"  [yellow]{report.skipped_unsupported} unsupported SOP classes skipped[/yellow]")
+        console.print(
+            f"  [yellow]{report.skipped_unsupported} unsupported SOP classes skipped[/yellow]"
+        )
 
     df = records_to_dataframe(report.records)
     output_csv.parent.mkdir(parents=True, exist_ok=True)

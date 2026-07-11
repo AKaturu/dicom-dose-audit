@@ -38,6 +38,7 @@ def test_write_synthetic_demo_bundle_outputs_shareable_artifacts(tmp_path):
 
     csv = pd.read_csv(bundle / "data" / "synthetic_dose_data.csv")
     assert set(csv["source"].unique()) == {"synthetic"}
+    assert csv["scanner_manufacturer"].notna().all()
     assert len(csv) == 40
 
     readme = (bundle / "README.md").read_text(encoding="utf-8")

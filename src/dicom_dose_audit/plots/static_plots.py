@@ -55,9 +55,7 @@ def boxplot_by_protocol(df: pd.DataFrame, metric: str = COL_CTDI_VOL) -> str:
     if vals.empty:
         return ""
 
-    protocols = sorted(df[COL_PROTOCOL].dropna().unique())
-    data = [pd.to_numeric(df.loc[df[COL_PROTOCOL] == p, metric], errors="coerce").dropna() for p in protocols]
-    data = [d for d in data if len(d) > 0]
+    protocols, data = _nonempty_groups(df, COL_PROTOCOL, metric)
 
     _, ax = plt.subplots(figsize=(max(6, len(protocols) * 0.9), 4.5))
     ax.boxplot(data, tick_labels=protocols, patch_artist=True, vert=True)
@@ -79,12 +77,7 @@ def boxplot_by_scanner(df: pd.DataFrame, metric: str = COL_CTDI_VOL) -> str:
     if vals.empty:
         return ""
 
-    scanners = sorted(df[COL_SCANNER_MODEL].dropna().unique())
-    data = [
-        pd.to_numeric(df.loc[df[COL_SCANNER_MODEL] == s, metric], errors="coerce").dropna()
-        for s in scanners
-    ]
-    data = [d for d in data if len(d) > 0]
+    scanners, data = _nonempty_groups(df, COL_SCANNER_MODEL, metric)
 
     _, ax = plt.subplots(figsize=(max(6, len(scanners) * 0.9), 4.5))
     ax.boxplot(data, tick_labels=scanners, patch_artist=True, vert=True)
@@ -137,3 +130,18 @@ def monthly_trend_plot(trend_df: pd.DataFrame, metric: str = COL_CTDI_VOL) -> st
     ax.tick_params(axis="x", rotation=45)
     plt.tight_layout()
     return figure_to_data_uri()
+
+
+def _nonempty_groups(
+    df: pd.DataFrame, group_column: str, metric: str
+) -> tuple[list[str], list[pd.Series]]:
+    """Return labels and values together so filtering cannot desynchronize them."""
+    labels: list[str] = []
+    data: list[pd.Series] = []
+    for group in sorted(df[group_column].dropna().unique()):
+        values = pd.to_numeric(df.loc[df[group_column] == group, metric], errors="coerce").dropna()
+        if values.empty:
+            continue
+        labels.append(str(group))
+        data.append(values)
+    return labels, data

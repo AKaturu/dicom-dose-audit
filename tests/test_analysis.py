@@ -95,9 +95,14 @@ def test_dose_audit_result_frozen():
     result = DoseAuditResult(
         dataframe=pd.DataFrame(),
         group_summaries=[],
-        missing=__import__("dicom_dose_audit.analytics.missing", fromlist=["MissingDoseReport"]).MissingDoseReport(
-            per_column=[], n_studies_missing_ctdi=0, n_studies_missing_dlp=0,
-            n_studies_missing_both=0, n_total=0,
+        missing=__import__(
+            "dicom_dose_audit.analytics.missing", fromlist=["MissingDoseReport"]
+        ).MissingDoseReport(
+            per_column=[],
+            n_studies_missing_ctdi=0,
+            n_studies_missing_dlp=0,
+            n_studies_missing_both=0,
+            n_total=0,
         ),
         outliers=[],
         version_comparisons=[],

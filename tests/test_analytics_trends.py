@@ -85,9 +85,14 @@ def test_trends_dataframe_empty():
 
 def test_monthly_trend_dataclass():
     t = MonthlyTrend(
-        year_month="2024-01", protocol="CT Head",
-        metric=COL_CTDI_VOL, n=10, median=30.0,
-        p25=25.0, p75=35.0, mean=31.0,
+        year_month="2024-01",
+        protocol="CT Head",
+        metric=COL_CTDI_VOL,
+        n=10,
+        median=30.0,
+        p25=25.0,
+        p75=35.0,
+        mean=31.0,
     )
     assert t.year_month == "2024-01"
     assert t.median == 30.0

@@ -58,9 +58,7 @@ def _build_schema() -> pa.DataFrameSchema:
             COL_PATIENT_ID: pa.Column(
                 str, checks=_nonempty, nullable=False, required=True, coerce=True
             ),
-            COL_STUDY_DATE: pa.Column(
-                "datetime64[ns]", nullable=False, required=True, coerce=True
-            ),
+            COL_STUDY_DATE: pa.Column("datetime64[ns]", nullable=False, required=True, coerce=True),
             COL_PROTOCOL: pa.Column(
                 str, checks=_nonempty, nullable=False, required=True, coerce=True
             ),
@@ -79,16 +77,14 @@ def _build_schema() -> pa.DataFrameSchema:
                 coerce=True,
             ),
             # --- optional columns ---
-            COL_PROTOCOL_VERSION: pa.Column(
-                str, nullable=True, required=False, coerce=True
-            ),
+            COL_PROTOCOL_VERSION: pa.Column(str, nullable=True, required=False, coerce=True),
             COL_SCANNER_MODEL: pa.Column(str, nullable=True, required=False, coerce=True),
-            COL_SCANNER_MANUFACTURER: pa.Column(
-                str, nullable=True, required=False, coerce=True
-            ),
+            COL_SCANNER_MANUFACTURER: pa.Column(str, nullable=True, required=False, coerce=True),
             COL_SITE: pa.Column(str, nullable=True, required=False, coerce=True),
             COL_SIZE_CATEGORY: pa.Column(str, nullable=True, required=False, coerce=True),
-            COL_KVP: pa.Column(float, checks=pa.Check.ge(0.0), nullable=True, required=False, coerce=True),
+            COL_KVP: pa.Column(
+                float, checks=pa.Check.ge(0.0), nullable=True, required=False, coerce=True
+            ),
             COL_TUBE_CURRENT: pa.Column(
                 float, checks=pa.Check.ge(0.0), nullable=True, required=False, coerce=True
             ),
