@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Pinned every GitHub Action dependency to an immutable commit SHA.
 - Added a distribution-metadata contract test to prevent package-version drift.
 ### Fixed
 - Correct DICOM RDSR concept mappings and DLP-weighted multi-event CTDIvol aggregation
