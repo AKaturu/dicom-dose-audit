@@ -100,8 +100,14 @@ def compare_protocol_versions(
                 if metric not in sub.columns:
                     continue
                 comp = _compare_pair(
-                    sub, protocol, version_a, version_b, metric,
-                    confidence=confidence, n_bootstrap=n_bootstrap, seed=seed,
+                    sub,
+                    protocol,
+                    version_a,
+                    version_b,
+                    metric,
+                    confidence=confidence,
+                    n_bootstrap=n_bootstrap,
+                    seed=seed,
                 )
                 comparisons.append(comp)
     return comparisons
@@ -157,7 +163,9 @@ def _compare_pair(
     # Mann-Whitney U test (non-parametric, no distribution assumption).
     if len(vals_a) >= 5 and len(vals_b) >= 5:
         try:
-            _, p_value = sp_stats.mannwhitneyu(vals_b.values, vals_a.values, alternative="two-sided")
+            _, p_value = sp_stats.mannwhitneyu(
+                vals_b.values, vals_a.values, alternative="two-sided"
+            )
             p_value = round(float(p_value), 6)
         except ValueError:
             p_value = None

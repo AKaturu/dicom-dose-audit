@@ -50,20 +50,24 @@ def generate_synthetic_dose_csv(
                 "patient_id": str(s["patient_id"]),
                 "study_date": str(s["study_date"]),
                 "protocol": str(s["protocol"]),
-                "protocol_version": str(s["protocol_version"]) if s.get("protocol_version") else None,
+                "protocol_version": str(s["protocol_version"])
+                if s.get("protocol_version")
+                else None,
                 "scanner_model": str(s["scanner_model"]) if s.get("scanner_model") else None,
                 COL_SCANNER_MANUFACTURER: (
-                    str(s["scanner_manufacturer"])
-                    if s.get("scanner_manufacturer")
-                    else None
+                    str(s["scanner_manufacturer"]) if s.get("scanner_manufacturer") else None
                 ),
                 "site": str(s["site"]) if s.get("site") else None,
                 "size_category": str(s.get("size_category") or DEFAULT_SIZE_CATEGORY),
                 "ctdi_vol_mgy": s["ctdi_vol"] if s["ctdi_vol"] is not None else None,
                 "dlp_mgy_cm": s["dlp"] if s["dlp"] is not None else None,
                 "kvp": float(s["kvp"]) if s.get("kvp") is not None else None,
-                "tube_current_ma": float(s["tube_current"]) if s.get("tube_current") is not None else None,
-                "scan_length_cm": float(s["scan_length_cm"]) if s.get("scan_length_cm") is not None else None,
+                "tube_current_ma": float(s["tube_current"])
+                if s.get("tube_current") is not None
+                else None,
+                "scan_length_cm": float(s["scan_length_cm"])
+                if s.get("scan_length_cm") is not None
+                else None,
                 "has_dose_sr": s.get("source_kind") == "rdsr",
                 "source": "synthetic",
             }

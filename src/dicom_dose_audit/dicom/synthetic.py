@@ -47,8 +47,12 @@ _PROTOCOL_BASELINES: dict[str, dict[str, float]] = {
 }
 
 _SCANNERS = ["GE Revolution", "Siemens SOMATOM", "Philips Brilliance", "Canon Aquilion"]
-_MANUFACTURERS = {"GE Revolution": "GE", "Siemens SOMATOM": "Siemens",
-                  "Philips Brilliance": "Philips", "Canon Aquilion": "Canon"}
+_MANUFACTURERS = {
+    "GE Revolution": "GE",
+    "Siemens SOMATOM": "Siemens",
+    "Philips Brilliance": "Philips",
+    "Canon Aquilion": "Canon",
+}
 _SITES = ["North Hospital", "South Hospital", "Community Imaging"]
 _SIZES = ["small", "medium", "large", "pediatric"]
 
@@ -328,15 +332,17 @@ def specs_to_records(specs: list[dict[str, object]]) -> list[DicomRecord]:
                 protocol_version=str(s["protocol_version"]) if s.get("protocol_version") else None,
                 scanner_model=str(s["scanner_model"]) if s.get("scanner_model") else None,
                 scanner_manufacturer=(
-                    str(s["scanner_manufacturer"])
-                    if s.get("scanner_manufacturer")
-                    else None
+                    str(s["scanner_manufacturer"]) if s.get("scanner_manufacturer") else None
                 ),
                 site=str(s["site"]) if s.get("site") else None,
                 size_category=str(s.get("size_category") or DEFAULT_SIZE_CATEGORY),
                 kvp=float(s["kvp"]) if s.get("kvp") is not None else None,
-                tube_current=float(s["tube_current"]) if s.get("tube_current") is not None else None,
-                scan_length_cm=float(s["scan_length_cm"]) if s.get("scan_length_cm") is not None else None,
+                tube_current=float(s["tube_current"])
+                if s.get("tube_current") is not None
+                else None,
+                scan_length_cm=float(s["scan_length_cm"])
+                if s.get("scan_length_cm") is not None
+                else None,
                 has_dose_sr=s.get("source_kind") == "rdsr",
                 source="synthetic",
             )

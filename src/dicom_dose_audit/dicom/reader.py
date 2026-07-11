@@ -196,8 +196,7 @@ def _read_rdsr(ds: object) -> DicomRecord:
         if all(weight is not None for _, weight in ctdi_values):
             total_weight = math.fsum(float(weight) for _, weight in ctdi_values)
             mean_ctdi = (
-                math.fsum(ctdi * float(weight) for ctdi, weight in ctdi_values)
-                / total_weight
+                math.fsum(ctdi * float(weight) for ctdi, weight in ctdi_values) / total_weight
             )
         else:
             mean_ctdi = math.fsum(ctdi for ctdi, _ in ctdi_values) / len(ctdi_values)
@@ -223,7 +222,9 @@ def _read_rdsr(ds: object) -> DicomRecord:
     return record
 
 
-def _iter_irradiation_events(ds: object) -> Iterator[tuple[float | None, float | None, float | None]]:
+def _iter_irradiation_events(
+    ds: object,
+) -> Iterator[tuple[float | None, float | None, float | None]]:
     """Yield ``(mean_ctdi_vol, dlp, scanned_length)`` per irradiation event.
 
     Walks the RDSR content tree depth-first. An "event" is a CONTAINER content
@@ -246,7 +247,9 @@ def _iter_irradiation_events(ds: object) -> Iterator[tuple[float | None, float |
     yield from _walk_content(content_seq)
 
 
-def _walk_content(seq: Iterable[object]) -> Iterator[tuple[float | None, float | None, float | None]]:
+def _walk_content(
+    seq: Iterable[object],
+) -> Iterator[tuple[float | None, float | None, float | None]]:
     """Group loose dose siblings while recursively walking non-standard trees.
 
     Standard RDSRs are handled by their event containers above. This fallback

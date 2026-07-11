@@ -35,7 +35,9 @@ def test_generate_html_report_without_optional_pdf(sample_df, tmp_path: Path) ->
 
 
 def test_pdf_generation_falls_back_when_weasyprint_is_unavailable(
-    sample_df, tmp_path: Path, monkeypatch,
+    sample_df,
+    tmp_path: Path,
+    monkeypatch,
 ) -> None:
     def fail_weasyprint(*_args, **_kwargs) -> None:
         raise ImportError("optional dependency unavailable")
@@ -54,7 +56,8 @@ def test_pdf_generation_falls_back_when_weasyprint_is_unavailable(
 
 
 def test_font_registration_falls_back_for_incomplete_family(
-    tmp_path: Path, monkeypatch,
+    tmp_path: Path,
+    monkeypatch,
 ) -> None:
     regular = tmp_path / "DejaVuSans.ttf"
     regular.write_bytes(b"font")

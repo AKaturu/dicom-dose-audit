@@ -43,7 +43,8 @@ def test_ingest_command_writes_csv(tmp_path: Path) -> None:
 
 
 def test_compute_command_writes_machine_readable_outputs(
-    synthetic_csv: Path, tmp_path: Path,
+    synthetic_csv: Path,
+    tmp_path: Path,
 ) -> None:
     output = tmp_path / "analysis"
     result = runner.invoke(

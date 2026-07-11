@@ -63,7 +63,9 @@ def analyze_missing_dose(df: pd.DataFrame) -> MissingDoseReport:
             )
         )
 
-    has_ctdi = df[COL_CTDI_VOL].notna() if COL_CTDI_VOL in df.columns else pd.Series(False, index=df.index)
+    has_ctdi = (
+        df[COL_CTDI_VOL].notna() if COL_CTDI_VOL in df.columns else pd.Series(False, index=df.index)
+    )
     has_dlp = df[COL_DLP].notna() if COL_DLP in df.columns else pd.Series(False, index=df.index)
 
     n_missing_ctdi = int((~has_ctdi).sum())

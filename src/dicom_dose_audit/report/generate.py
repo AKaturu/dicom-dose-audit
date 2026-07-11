@@ -42,8 +42,6 @@ GREEN = "#1f7a4d"
 ORANGE = "#b54d12"
 
 
-
-
 @dataclass(frozen=True)
 class ReportArtifacts:
     """Generated report paths."""
@@ -153,7 +151,9 @@ def _register_fonts(pdf: object) -> str:
     return "Helvetica"  # built-in latin-1 fallback
 
 
-def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path, font_family: str = "Helvetica") -> None:
+def _write_pdf_fpdf2(
+    result: DoseAuditResult, pdf_path: Path, font_family: str = "Helvetica"
+) -> None:
     """Generate a styled PDF using fpdf2 as a cross-platform fallback."""
     from fpdf import FPDF
 
@@ -206,8 +206,11 @@ def _write_pdf_fpdf2(result: DoseAuditResult, pdf_path: Path, font_family: str =
         pdf.set_font(font_family, "I", 10)
         pdf.set_text_color(*_hex_to_rgb(MUTED))
         pdf.cell(
-            0, 6, "No protocols with multiple versions were available.",
-            new_x="LMARGIN", new_y="NEXT",
+            0,
+            6,
+            "No protocols with multiple versions were available.",
+            new_x="LMARGIN",
+            new_y="NEXT",
         )
     else:
         _pdf_table(pdf, versions_df, font_family)
@@ -302,7 +305,8 @@ def _pdf_caveat(pdf: object, font_family: str = "Helvetica") -> None:
     pdf.set_font(font_family, "I", 9)
     pdf.set_text_color(*_hex_to_rgb(INK))
     pdf.multi_cell(
-        0, 5,
+        0,
+        5,
         "Flagged studies are statistical outliers within their protocol group. "
         "This is NOT a clinical-safety determination.",
         border="L",
@@ -357,7 +361,9 @@ def _pdf_table(pdf: object, df: pd.DataFrame, font_family: str = "Helvetica") ->
             pdf.set_font(font_family, "B", 8)
             pdf.set_fill_color(*_hex_to_rgb(PANEL))
             for col_name in cols:
-                pdf.cell(col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP")
+                pdf.cell(
+                    col_w, row_h, col_name[:24], border=1, fill=True, new_x="RIGHT", new_y="TOP"
+                )
             pdf.ln(row_h)
             pdf.set_font(font_family, "", 8)
 
@@ -429,7 +435,9 @@ def render_report_html(result: DoseAuditResult) -> str:
         missing_ctdi=summary["n_studies_missing_ctdi"],
         missing_dlp=summary["n_studies_missing_dlp"],
         summary_table=_to_html(summary_metrics_frame(result)),
-        outliers_table=_to_html(outliers_dataframe(result.outliers), empty="No statistical outliers flagged."),
+        outliers_table=_to_html(
+            outliers_dataframe(result.outliers), empty="No statistical outliers flagged."
+        ),
         versions_table=_to_html(
             comparisons_dataframe(result.version_comparisons),
             empty="No protocols with multiple versions were available.",

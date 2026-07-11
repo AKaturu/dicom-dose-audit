@@ -139,9 +139,7 @@ def _nonempty_groups(
     labels: list[str] = []
     data: list[pd.Series] = []
     for group in sorted(df[group_column].dropna().unique()):
-        values = pd.to_numeric(
-            df.loc[df[group_column] == group, metric], errors="coerce"
-        ).dropna()
+        values = pd.to_numeric(df.loc[df[group_column] == group, metric], errors="coerce").dropna()
         if values.empty:
             continue
         labels.append(str(group))
