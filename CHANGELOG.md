@@ -8,9 +8,11 @@
 - Preserve scanner manufacturer in synthetic CSV output
 - Render escaped dataframe values as functional HTML report tables
 - Fall back safely when only part of the DejaVu font family is installed
+- Load packaged report templates explicitly as UTF-8
 
 ### Changed
 - Make WeasyPrint an optional `pdf` extra; fpdf2 remains the portable default fallback
+- Publish PEP 561 typing metadata, test on Python 3.13, and modernize SPDX package metadata
 
 ## 0.1.0 - 2026-06-28
 

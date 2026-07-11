@@ -403,8 +403,16 @@ def _pdf_embed_plot(pdf: object, data_uri: str) -> None:
 
 def render_report_html(result: DoseAuditResult) -> str:
     """Render the report into an HTML string."""
-    template_text = files("dicom_dose_audit.report").joinpath("templates", "report.html").read_text()
-    css = files("dicom_dose_audit.report").joinpath("templates", "styles.css").read_text()
+    template_text = (
+        files("dicom_dose_audit.report")
+        .joinpath("templates", "report.html")
+        .read_text(encoding="utf-8")
+    )
+    css = (
+        files("dicom_dose_audit.report")
+        .joinpath("templates", "styles.css")
+        .read_text(encoding="utf-8")
+    )
     env = Environment(autoescape=select_autoescape(["html", "xml"]))
     template = env.from_string(template_text)
 
