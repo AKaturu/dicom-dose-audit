@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upgraded CI and release workflows to Node 24-compatible immutable action revisions.
 - Pinned every GitHub Action dependency to an immutable commit SHA.
 - Added a distribution-metadata contract test to prevent package-version drift.
 ### Fixed
